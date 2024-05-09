@@ -1,4 +1,7 @@
 {
+	"worldConfiguration" : {
+		"name": "hayabusa.dcl.eth"
+	  },
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {

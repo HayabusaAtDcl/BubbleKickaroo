@@ -1,7 +1,6 @@
   import { Color4 } from '@dcl/sdk/math'
   import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity } from '@dcl/sdk/react-ecs'
 
-
 export function addClues(){
   let showHint = false 
  
@@ -61,8 +60,8 @@ export function addClues(){
             textAlign="top-left"
             fontSize={15}
             value="
-            Find the bubble that contains the real you! Pop it in 
-            ClownFace's mouth to check.
+            Find the bubble that contains the real you! Kick it to 
+            Glow Ball to check.
             
             Find it before time runs out to get to the next level.
 
@@ -82,3 +81,5 @@ export function addClues(){
     </UiEntity>
   ))
 }
+
+

@@ -11,3 +11,13 @@ AudioSource.create(carnivalSound, { audioClipUrl: 'sounds/carnival.mp3',  playin
 export const winSound = engine.addEntity()
 Transform.create(winSound)
 AudioSource.create(winSound, { audioClipUrl: 'sounds/win.mp3',  playing: false })
+
+export const clapSound = engine.addEntity()
+Transform.create(clapSound)
+AudioSource.create(clapSound, { audioClipUrl: 'sounds/clap.mp3',  playing: false })
+
+
+
+export function generateRandomNumber(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

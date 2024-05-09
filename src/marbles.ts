@@ -1,11 +1,13 @@
-import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType, Transform, TextShape, AudioSource, RealmInfo, TextAlignMode } from "@dcl/sdk/ecs"
-import { Vector3, Quaternion } from "@dcl/sdk/math"
+import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType, Transform, TextShape, AudioSource, RealmInfo, TextAlignMode, MeshRenderer, Material, Billboard } from "@dcl/sdk/ecs"
+import { Vector3, Quaternion, Color4, Color3 } from "@dcl/sdk/math"
 import { Ball } from "./ball"
 import { MiniMe } from "./miniMe"
 import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
-import { popSound, winSound } from "./resource"
+import { clapSound, generateRandomNumber, popSound, winSound } from "./resource"
 import CANNON from "cannon"
+import { actionEvents } from "./event"
+import { triggerSceneEmote } from "~system/RestrictedActions"
 
 let realMeIndex = 0;
 let foundMe = false;
@@ -17,7 +19,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     let ballBodies: CANNON.Body[] = [] // Store ball bodies
     let currentLevel = 0;
 
-    realMeIndex =  Math.floor(Math.random() * numberOfMarbles);
+    realMeIndex = generateRandomNumber(0, numberOfMarbles-1);
 
     let ballHeight = 12 // Start height for the balls
     let forwardVector: Vector3 = Vector3.rotate(Vector3.Forward(), Transform.get(engine.CameraEntity).rotation) // Camera's forward vector
@@ -68,7 +70,24 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     }
 
 
+    //set up moving cube
+
+    const target = engine.addEntity();
+    Transform.create(target, {
+      position: Vector3.create(28, 1, 28),
+    })
+    
+    MeshRenderer.setSphere(target)
+    Material.setPbrMaterial(target, {
+      albedoColor: {r: 15, g: 0, b: 0, a:1},
+      
+      //roughness: 0.1,
+    })
+
+
     // Setup our world
+
+    
     const world: CANNON.World = new CANNON.World()
     world.gravity.set(0, -9.82, 0) // m/s²
   
@@ -142,16 +161,17 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
           miniMeTransform.position = ballBodies[i].position
           miniMeTransform.rotation = ballBodies[i].quaternion
           
+          const targetTransform = Transform.getMutable(target);
     
-          const marbleInArea = ballBodies[i].position.x >= 8.67 && ballBodies[i].position.x <= 12.5 
-          && ballBodies[i].position.z >= 13 && ballBodies[i].position.z <= 15.5;
+          const marbleInArea = (ballBodies[i].position.x >= (targetTransform.position.x - 1)) && (ballBodies[i].position.x <= (targetTransform.position.x + 1))
+          && (ballBodies[i].position.z >= (targetTransform.position.z - 1))  && (ballBodies[i].position.z <= (targetTransform.position.z + 1) )
     
     
           if (marbleInArea){
             balls[i].isHidden = true;
            
-            ballTransform.position = Vector3.create(8,12, 8)
-            miniMeTransform.position = Vector3.create(8,12, 8)
+            ballTransform.position = Vector3.create(22,9, 23)
+            miniMeTransform.position = Vector3.create(22,9, 23)
             
             if (i === realMeIndex){
               foundMe = true;
@@ -224,7 +244,9 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
           }
           engine.addSystem(updateSystem)
           gameOver = false;
-          currentLevel = 1;
+          currentLevel = 0;
+          const mutableLevelSignText = TextShape.getMutable(levelSign)
+          mutableLevelSignText.text = "Level "+ (currentLevel + 1).toString()
         } else {
           for (let i = 0; i < ballBodies.length; i++) {
             balls[i].isHidden = false;
@@ -234,6 +256,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
             
             const miniMeTransform = Transform.getMutable(miniMes[i].entity)
             miniMeTransform.scale = Vector3.create(0.5,.5,.5)
+            utils.timers.clearInterval(intervalId)
           }
         }
         
@@ -243,24 +266,28 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     })
 
 
+
     // Set up count down
-    const startingTimer = 120;
+    const startingTimer = 180;
     let timer = startingTimer;
 
     const countDown = engine.addEntity()
     Transform.create(countDown, {
-        position: Vector3.create(4, 5, 17),
+        position: Vector3.create(6, 8, 19),
         rotation: Quaternion.fromEulerDegrees(0, 200, 0),
-        scale: Vector3.create(1, 1, 1)
+        scale: Vector3.create(0.9,.9,.9)
     })
     TextShape.create(countDown, {
       text: timer.toString(),
       textColor: { r: 102, g: 0, b: 102, a: 1 },
       textAlign: TextAlignMode.TAM_TOP_CENTER
     })
+    Billboard.create(countDown, {})
   
+    const affirmations = ['Super', 'Yay', 'Grand', 'Wow', 'Yes']
+    let intervalId = -1;
     let setTimer = () => {
-      let intervalId = utils.timers.setInterval(function () {
+      intervalId = utils.timers.setInterval(function () {
   
         timer = timer-1;
         const mutableText = TextShape.getMutable(countDown)
@@ -296,24 +323,38 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
           resetMarbles();
     
           mutableText.text = "GAME\nOVER!"
-         
+          triggerSceneEmote({ src: 'animations/loser2.glb', loop: true })
           gameOver = true;
-    
         } else {
     
             if (foundMe) {
 
+              let questCurrentLevel = currentLevel + 1;
               if (currentLevel === 3) {
-                mutableText.text = "You won!";
 
+                mutableText.text = "You won!";
+                Transform.getMutable(clapSound).position = Transform.get(engine.PlayerEntity).position
+                AudioSource.getMutable(clapSound).playing = true
+              
                 resetMarbles();
                 currentLevel = 0;
                 gameOver = true;
                 foundMe = false;
+
+               
+                
               } else {
-                mutableText.text = "Super!\n E to \n continue";
+                const affirmRand = generateRandomNumber(0,affirmations.length-1)
+                mutableText.text = affirmations[affirmRand] + "!\n E to \n continue";
+                
               }
               
+
+              actionEvents.emit('action', {
+                type: 'CUSTOM',
+                parameters: { id: 'Action-' + questCurrentLevel.toString() },
+              })
+
               utils.timers.clearInterval(intervalId)
   
               Transform.getMutable(winSound).position = Transform.get(engine.PlayerEntity).position
@@ -333,12 +374,40 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     const levelSign = engine.addEntity()
     Transform.create(levelSign, {
-        position: Vector3.create(4, 8, 17),
+        position: Vector3.create(6, 10, 19),
         rotation: Quaternion.fromEulerDegrees(0, 200, 0),
         scale: Vector3.create(1,1,1)
     })
     TextShape.create(levelSign, {
       text: "Level " + (currentLevel + 1).toString(),
-      textColor: { r: 255, g: 0, b: 255, a: 1 },
+      textColor: { r: 0, g: 255, b: 0, a: 1 },
+      textAlign:  TextAlignMode.TAM_TOP_CENTER
     })
+
+
+    Billboard.create(levelSign, {})
+
+    const levelPlane = engine.addEntity()
+    Transform.create(levelPlane, {
+        position: Vector3.create(6, 8, 19),
+        rotation: Quaternion.fromEulerDegrees(0, 200, 0),
+        scale: Vector3.create(4,8,4)
+    })
+    
+    MeshRenderer.setPlane(levelPlane)
+    Material.setPbrMaterial(levelPlane, {
+      albedoColor: {r: 0, g: 0, b: 0, a:.5}
+    })
+
+    Billboard.create(levelPlane, {})
+
+
+    utils.timers.setInterval( () => {
+
+      const randomLocation = generateRandomNumber(7,34)
+      const targetTransform =Transform.getMutable(target);
+      targetTransform.position.x = randomLocation
+      targetTransform.position.z = randomLocation
+    }, 15000)
+    
 }
