@@ -6,7 +6,7 @@ import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
 import { clapSound, generateRandomNumber, popSound, winSound } from "./resource"
 import CANNON from "cannon"
-import { actionEvents } from "./event"
+//import { actionEvents } from "./event"
 import { triggerSceneEmote } from "~system/RestrictedActions"
 
 let realMeIndex = 0;
@@ -21,7 +21,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     realMeIndex = generateRandomNumber(0, numberOfMarbles-1);
 
-    let ballHeight = 12 // Start height for the balls
+    let ballHeight = 10 // Start height for the balls
     let forwardVector: Vector3 = Vector3.rotate(Vector3.Forward(), Transform.get(engine.CameraEntity).rotation) // Camera's forward vector
     const vectorScale: number = 25
   
@@ -29,9 +29,9 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     // Create random balls and positions
     
     let addBall = (index: number) => {
-      const randomPositionX: number = Math.floor(Math.random() * 3) + 16
+      const randomPositionX: number = Math.floor(Math.random() * 3) + 32
       const randomPositionY: number = ballHeight
-      const randomPositionZ: number = Math.floor(Math.random() * 3) + 21
+      const randomPositionZ: number = Math.floor(Math.random() * 3) + 32
       randomPositions.push({ x: randomPositionX, y: randomPositionY, z: randomPositionZ })
   
       const ball = new Ball(modelPath, {
@@ -170,8 +170,11 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
           if (marbleInArea){
             balls[i].isHidden = true;
            
-            ballTransform.position = Vector3.create(22,9, 23)
-            miniMeTransform.position = Vector3.create(22,9, 23)
+            //ballTransform.position = Vector3.create(31,12, 33)
+            //miniMeTransform.position = Vector3.create(31,12, 33)
+
+            ballTransform.position = Vector3.create(33,11, 33)
+            miniMeTransform.position = Vector3.create(33,11, 33)
             
             if (i === realMeIndex){
               foundMe = true;
@@ -273,7 +276,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     const countDown = engine.addEntity()
     Transform.create(countDown, {
-        position: Vector3.create(6, 8, 19),
+        position: Vector3.create(21, 8, 33),
         rotation: Quaternion.fromEulerDegrees(0, 200, 0),
         scale: Vector3.create(0.9,.9,.9)
     })
@@ -350,10 +353,10 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
               }
               
 
-              actionEvents.emit('action', {
-                type: 'CUSTOM',
-                parameters: { id: 'Action-' + questCurrentLevel.toString() },
-              })
+              //actionEvents.emit('action', {
+              //  type: 'CUSTOM',
+               // parameters: { id: 'Action-' + questCurrentLevel.toString() },
+              //})
 
               utils.timers.clearInterval(intervalId)
   
@@ -374,7 +377,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     const levelSign = engine.addEntity()
     Transform.create(levelSign, {
-        position: Vector3.create(6, 10, 19),
+        position: Vector3.create(21, 10, 33),
         rotation: Quaternion.fromEulerDegrees(0, 200, 0),
         scale: Vector3.create(1,1,1)
     })
@@ -389,7 +392,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     const levelPlane = engine.addEntity()
     Transform.create(levelPlane, {
-        position: Vector3.create(6, 8, 19),
+        position: Vector3.create(21, 8, 33),
         rotation: Quaternion.fromEulerDegrees(0, 200, 0),
         scale: Vector3.create(4,8,4)
     })
@@ -404,10 +407,11 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
     utils.timers.setInterval( () => {
 
-      const randomLocation = generateRandomNumber(7,34)
+      const randomxLocation = generateRandomNumber(20, 40)
+      const randomzLocation = generateRandomNumber(20, 40)
       const targetTransform =Transform.getMutable(target);
-      targetTransform.position.x = randomLocation
-      targetTransform.position.z = randomLocation
+      targetTransform.position.x = randomxLocation
+      targetTransform.position.z = randomzLocation
     }, 15000)
     
 }
