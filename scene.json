@@ -1,4 +1,7 @@
 {
+	"worldConfiguration" : {
+		"name": "hayabusa.dcl.eth"
+	  },
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {
@@ -40,16 +43,13 @@
 			"default": true,
 			"position": {
 				"x": [
-					18,
-					12
+					44
 				],
 				"y": [
-					14,
 					14
 				],
 				"z": [
-					26,
-					12
+					28
 				]
 			},
 			"cameraTarget": {

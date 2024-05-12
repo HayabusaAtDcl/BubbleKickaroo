@@ -53,16 +53,12 @@ export class MiniMe {
        
       //let action = ['wave', 'handsair', 'kiss']
       const action = ['kiss']
-      const randomAction = Math.floor(Math.random() * action.length);
+      const randomAction = Math.floor(Math.random() * action.length)
 
-
-      
-      console.log("counter:" +  this.counter.toString())
-      console.log("isREalme:" +  this.isRealMe.toString())
       if (this.counter >= 3 && this.isRealMe) {
         this.counter = 0;
         npc.emotes = [action[randomAction]]
-        npc.wearables = [];
+        //npc.wearables = [];
         npc.expressionTriggerId = action[randomAction]
       } else {
         npc.emotes = ["cry"]
