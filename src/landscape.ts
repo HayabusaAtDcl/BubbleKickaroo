@@ -1,18 +1,30 @@
 import { engine, AudioSource, GltfContainer, ColliderLayer, Transform, TextShape, Billboard, MeshRenderer, Material, MaterialTransparencyMode, PBBillboard, TextureWrapMode } from "@dcl/sdk/ecs"
 import { Vector3, Quaternion, Color4 } from "@dcl/sdk/math"
-import { carnivalSound } from "./resource"
-import { onEnterScene, onLeaveScene } from '@dcl/sdk/src/players'
-import * as utils from '@dcl-sdk/utils' 
+import { carnivalSound, waoSound } from "./resource"
+
 
 export function addLandscape() {
 
-    Transform.getMutable(carnivalSound).position = Vector3.create(23,3, 23)
+    //Transform.getMutable(waoSound).position =  Transform.get(engine.PlayerEntity).position
+    //AudioSource.getMutable(waoSound).playing = true
+    //AudioSource.getMutable(waoSound).loop = true
+    
+    Transform.getMutable(carnivalSound).position = Vector3.create(32, 8, 32)
     AudioSource.getMutable(carnivalSound).playing = true
     AudioSource.getMutable(carnivalSound).loop = true
 
 
     
-
+    const orb = engine.addEntity()
+    GltfContainer.create(orb, {
+        //src: 'models/clear_orb.glb'
+        src: 'models/color_orb.glb'
+    })
+    Transform.create(orb, {
+        position: Vector3.create(32, 6, 32),
+        scale: Vector3.create(23, 23, 23),
+        
+    }) 
     
     const floor = engine.addEntity()
     Transform.create(floor, {
@@ -31,7 +43,9 @@ export function addLandscape() {
         transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
       })
     
-
+ 
+   
+    
 
     const ceiling = engine.addEntity()
     GltfContainer.create(ceiling, {

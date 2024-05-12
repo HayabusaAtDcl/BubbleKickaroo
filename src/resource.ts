@@ -16,7 +16,9 @@ export const clapSound = engine.addEntity()
 Transform.create(clapSound)
 AudioSource.create(clapSound, { audioClipUrl: 'sounds/clap.mp3',  playing: false })
 
-
+export const waoSound = engine.addEntity()
+Transform.create(waoSound)
+AudioSource.create(waoSound, { audioClipUrl: 'sounds/wao.mp3',  playing: false })
 
 export function generateRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;

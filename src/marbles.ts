@@ -4,10 +4,10 @@ import { Ball } from "./ball"
 import { MiniMe } from "./miniMe"
 import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
-import { clapSound, generateRandomNumber, popSound, winSound } from "./resource"
+import { carnivalSound, clapSound, generateRandomNumber, popSound, waoSound, winSound } from "./resource"
 import CANNON from "cannon"
 //import { actionEvents } from "./event"
-import { triggerSceneEmote } from "~system/RestrictedActions"
+import { triggerEmote, triggerSceneEmote } from "~system/RestrictedActions"
 
 let realMeIndex = 0;
 let foundMe = false;
@@ -169,12 +169,8 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     
           if (marbleInArea){
             balls[i].isHidden = true;
-           
-            //ballTransform.position = Vector3.create(31,12, 33)
-            //miniMeTransform.position = Vector3.create(31,12, 33)
-
             ballTransform.position = Vector3.create(33,11, 33)
-            miniMeTransform.position = Vector3.create(33,11, 33)
+            miniMeTransform.position = Vector3.create(33,10.9, 33)
             
             if (i === realMeIndex){
               foundMe = true;
@@ -333,11 +329,26 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
             if (foundMe) {
 
               let questCurrentLevel = currentLevel + 1;
-              if (currentLevel === 3) {
+              //if (currentLevel === 0) {
+                if (currentLevel === 3) {
 
                 mutableText.text = "You won!";
-                Transform.getMutable(clapSound).position = Transform.get(engine.PlayerEntity).position
-                AudioSource.getMutable(clapSound).playing = true
+
+                AudioSource.getMutable(carnivalSound).playing = false;
+
+                Transform.getMutable(waoSound).position = Transform.get(engine.PlayerEntity).position
+                AudioSource.getMutable(waoSound).playing = true
+
+                utils.timers.setTimeout(()=>{
+                  Transform.getMutable(clapSound).position = Transform.get(engine.PlayerEntity).position
+                  AudioSource.getMutable(clapSound).playing = true
+                  AudioSource.getMutable(carnivalSound).playing = true;
+                }, 1500);
+
+                
+                
+                  
+                triggerEmote({ predefinedEmote: 'handsair' })
               
                 resetMarbles();
                 currentLevel = 0;
@@ -347,6 +358,9 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
                
                 
               } else {
+
+                Transform.getMutable(winSound).position = Transform.get(engine.PlayerEntity).position
+                AudioSource.getMutable(winSound).playing = true
                 const affirmRand = generateRandomNumber(0,affirmations.length-1)
                 mutableText.text = affirmations[affirmRand] + "!\n E to \n continue";
                 
@@ -360,8 +374,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
 
               utils.timers.clearInterval(intervalId)
   
-              Transform.getMutable(winSound).position = Transform.get(engine.PlayerEntity).position
-              AudioSource.getMutable(winSound).playing = true
+              
             
               
             } else {
