@@ -322,7 +322,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
           resetMarbles();
     
           mutableText.text = "GAME\nOVER!"
-          triggerSceneEmote({ src: 'animations/loser2.glb', loop: true })
+          triggerSceneEmote({ src: 'animations/loser.glb', loop: true })
           gameOver = true;
         } else {
     
