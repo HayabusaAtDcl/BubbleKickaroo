@@ -1,43 +1,101 @@
-  import { Color4 } from '@dcl/sdk/math'
+  import { Entity, GltfContainer, Transform, engine } from '@dcl/sdk/ecs'
+import { Color4, Vector3 } from '@dcl/sdk/math'
   import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity } from '@dcl/sdk/react-ecs'
+import { Ceiling } from './resource'
 
-export function addClues(){
+export function addUi(){
   let showHint = false 
- 
+  let hideGlobe = false 
   ReactEcsRenderer.setUiRenderer(() => (
    
     <UiEntity
       uiTransform={{ 
         alignItems: 'flex-start',
-        flexDirection: 'column',
+        flexDirection: 'row',
        
-			justifyContent: 'space-between',
+        alignContent: 'flex-end',
 			positionType: 'absolute',
-			position: { right: "0%", bottom: '0%' }
+			position: { right: "0%", top: '20px' }
         }}
     >
 
       <UiEntity
         uiTransform={{ 
-          flexDirection: 'row'
+          alignContent: 'flex-start',
+          flexDirection: 'column'
           }}
           >
     
         <Button
-          value= {showHint?"Close":"Instructions"}
+          value= ""
           fontSize={ 15}
           variant= 'primary'
           uiTransform={{
-            width: 120, 
-            height: 40,
-            margin: '0px 0px 0px 0px' 
+            display: 'flex',
+            width: 60, 
+            height: 60,
+            margin: '80 10 10px 0px' 
           }}
-          uiBackground={{ color: Color4.create(0, 0, 0, 0.8) }}
+          uiBackground={{ 
+            textureMode: 'stretch',
+            texture: {
+              src: "images/help.png"
+  
+            },
+            color: Color4.create(1,1,1)
+        }}
           onMouseDown={() => {
             console.log("Clicked on the UI")
             showHint = !showHint
             } }
         />
+
+    <Button
+        value= ""
+        variant= 'primary'
+        uiTransform={{
+          display: hideGlobe ? 'flex': 'none',
+          width: 60, 
+          height: 60,
+          margin: '10 10 10px 0px' 
+        }}
+        
+        uiBackground={{ 
+          textureMode: 'stretch',
+		      texture: {
+            src: "images/withoutneon.png"
+
+		      },
+          color: Color4.create(1,1,1)
+      }}
+
+        onMouseDown={() => {
+          toggleExperience()
+        }}
+      />
+
+<Button
+        value= ""
+        variant= 'primary'
+        uiTransform={{
+          display: hideGlobe ? 'none': 'flex',
+          width: 60, 
+          height: 60,
+          margin: '10 10  10px 0px' 
+        }}
+        
+        uiBackground={{ 
+          textureMode: 'stretch',
+		      texture: {
+			      src: "images/withneon.png"
+		      },
+          color: Color4.create(1,1,1)
+      }}
+
+        onMouseDown={() => {
+          toggleExperience()
+        }}
+      />
 
        
       </UiEntity>
@@ -50,9 +108,9 @@ export function addClues(){
         uiTransform={{
         
           width: '500',
-          height: '380',
+          height: 'auto',
           display: showHint ? 'flex': 'none',
-          margin: '0px 0px 0px 0px' 
+          margin: '60px 0px 0px 0px' 
         }}>
         
           <Label
@@ -78,8 +136,45 @@ export function addClues(){
             Restart game if GameOver!"
           />
       </UiEntity>
+
+      
     </UiEntity>
+
+    
   ))
+
+toggleExperience();
+function toggleExperience(){
+  
+
+  hideGlobe = !hideGlobe
+  
+
+  if (hideGlobe) {
+
+      
+    const ceiling = engine.addEntity()
+    GltfContainer.create(ceiling, {
+        src: 'models/ceiling.glb'
+    })
+    Transform.createOrReplace(ceiling, {
+        position: Vector3.create(32, 0, 32),
+        scale: Vector3.create(19.5,19.5,19.5),
+       
+    }) 
+
+    Ceiling.create(ceiling, {})
+
+  
+
+  } else {
+  
+
+    for (const [entity] of engine.getEntitiesWith(Ceiling)) {
+      engine.removeEntity(entity)
+    }
+  }
+}
 }
 
 

@@ -36,30 +36,14 @@ export function addLandscape() {
     MeshRenderer.setPlane(floor)
     Material.setPbrMaterial(floor, {
         texture: Material.Texture.Common({
-          src: 'images/floortile.png',
+          src: 'images/floortile.jpg',
 
           wrapMode: TextureWrapMode.TWM_REPEAT,
         }),
         transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
       })
     
- 
-   
-    
-
-    const ceiling = engine.addEntity()
-    GltfContainer.create(ceiling, {
-        src: 'models/ceiling.glb'
-    })
-    Transform.create(ceiling, {
-        position: Vector3.create(32, 0, 32),
-        scale: Vector3.create(19.5,19.5,19.5),
-       
-    }) 
-
-
-
-     const monkey = engine.addEntity();
+    const monkey = engine.addEntity();
     GltfContainer.create(monkey,
         {
         src: "models/monkey.glb",
