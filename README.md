@@ -1,4 +1,4 @@
-# Pop the bubbles
+# Bubble Kickaroo
 
 1. Download this repository.
 

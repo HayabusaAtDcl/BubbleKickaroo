@@ -5,8 +5,8 @@
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {
-		"title": "Pop the Bubbles",
-		"description": "Pop the Bubbles",
+		"title": "Bubble Kickaroo",
+		"description": "Find the right bubble before time runs out!",
 		"navmapThumbnail": "images/scene-thumbnail.png",
 		"favicon": "favicon_asset"
 	},

@@ -5,16 +5,10 @@ import { carnivalSound, waoSound } from "./resource"
 
 export function addLandscape() {
 
-    //Transform.getMutable(waoSound).position =  Transform.get(engine.PlayerEntity).position
-    //AudioSource.getMutable(waoSound).playing = true
-    //AudioSource.getMutable(waoSound).loop = true
-    
     Transform.getMutable(carnivalSound).position = Vector3.create(32, 8, 32)
     AudioSource.getMutable(carnivalSound).playing = true
     AudioSource.getMutable(carnivalSound).loop = true
 
-
-    
     const orb = engine.addEntity()
     GltfContainer.create(orb, {
         //src: 'models/clear_orb.glb'
@@ -43,6 +37,8 @@ export function addLandscape() {
         transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
       })
     
+
+    // Credit:  utilising Head Chef Bot With Animations, by Jakss (sketchfab), licensed under CC BY 2.0
     const monkey = engine.addEntity();
     GltfContainer.create(monkey,
         {
@@ -58,7 +54,7 @@ export function addLandscape() {
         rotation: Quaternion.fromEulerDegrees(0, 0, 0)
     }) 
 
-    
+    /*
     const followMe = engine.addEntity()
     Transform.create(followMe, {
         position: Vector3.create(31, 31, 31),
@@ -73,5 +69,5 @@ export function addLandscape() {
         }),
         transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
       })
-
+      */
 }
