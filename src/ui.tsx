@@ -102,17 +102,19 @@ export function addUi(){
       </UiEntity>
 
       <UiEntity 
-        uiBackground={{
-          color: Color4.create(0, 0, 0, 0.6)
-        }}
         
         uiTransform={{
         
           width: '500',
-          height: 'auto',
+          height: '350',
           display: showHint ? 'flex': 'none',
           margin: '60px 0px 0px 0px' 
-        }}>
+        }}
+        uiBackground={{
+          color: Color4.create(0, 0, 0, 0.6)
+        }}
+        
+        >
         
           <Label
           
