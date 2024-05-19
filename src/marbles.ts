@@ -1,54 +1,50 @@
-import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType, Transform, TextShape, AudioSource, RealmInfo, TextAlignMode, MeshRenderer, Material, Billboard } from "@dcl/sdk/ecs"
-import { Vector3, Quaternion, Color4, Color3 } from "@dcl/sdk/math"
-import { Ball } from "./ball"
-import { MiniMe } from "./miniMe"
+import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType, Transform, TextShape, AudioSource, TextAlignMode, MeshRenderer, Material, Billboard } from "@dcl/sdk/ecs"
+import { Vector3, Quaternion } from "@dcl/sdk/math"
 import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
 import { carnivalSound, clapSound, generateRandomNumber, popSound, waoSound, winSound } from "./resource"
 import CANNON from "cannon"
-//import { actionEvents } from "./event"
 import { triggerEmote, triggerSceneEmote } from "~system/RestrictedActions"
+import { Bubble } from "./bubble"
 
-let realMeIndex = 0;
-let foundMe = false;
-let gameOver = false;
 
-export function addMarbles(userData: any, numberOfMarbles: number, modelPath: string) {
-    let balls: Ball[] = [] // Store balls
-    let miniMes: MiniMe[] = [];
-    let ballBodies: CANNON.Body[] = [] // Store ball bodies
+export function addBubbles(userData: any, numberOfBubbles: number, modelPath: string) {
+    const startingTimer = 180;
+    let realMeIndex = generateRandomNumber(0, numberOfBubbles-1);
+    let foundMe = false;
+    let gameOver = false;
     let currentLevel = 0;
-
-    realMeIndex = generateRandomNumber(0, numberOfMarbles-1);
+    
+    let bubbles: Bubble[] = [] 
+    let bubbleBodies: CANNON.Body[] = [] 
 
     let ballHeight = 10 // Start height for the balls
     let forwardVector: Vector3 = Vector3.rotate(Vector3.Forward(), Transform.get(engine.CameraEntity).rotation) // Camera's forward vector
     const vectorScale: number = 25
   
     let randomPositions: any = []
-    // Create random balls and positions
-    
-    let addBall = (index: number) => {
+    let addBubble = (index: number) => {
       const randomPositionX: number = Math.floor(Math.random() * 3) + 32
       const randomPositionY: number = ballHeight
       const randomPositionZ: number = Math.floor(Math.random() * 3) + 32
       randomPositions.push({ x: randomPositionX, y: randomPositionY, z: randomPositionZ })
   
-      const ball = new Ball(modelPath, {
-        position: randomPositions[index],
-        rotation: Quaternion.Zero(),
-        scale: Vector3.One()
-      })
-      balls.push(ball)
+      const bubble = new Bubble(modelPath, 
+        {
+          position: randomPositions[index],
+          rotation: Quaternion.Zero(),
+          scale: Vector3.One()
+        }, userData, index*1000, realMeIndex === index)
+
+      bubbles.push(bubble)
       ballHeight += 2 // To ensure the colliders aren't intersecting when the simulation starts
   
-      const miniMe = new MiniMe(userData, randomPositions[index], index*1000, realMeIndex === index)
-      miniMes.push(miniMe)
-
+    
+      
       // Allow the user to interact with the ball
       pointerEventsSystem.onPointerDown(
         {
-          entity: ball.entity,
+          entity: bubble.bubbleEntity,
           opts: {
             button: InputAction.IA_POINTER,
             hoverText: 'kick'
@@ -56,7 +52,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
         },
         function (cmd: any) {
           // Apply impulse based on the direction of the camera
-          ballBodies[index].applyImpulse(
+          bubbleBodies[index].applyImpulse(
             new CANNON.Vec3(forwardVector.x * vectorScale, forwardVector.y * vectorScale, forwardVector.z * vectorScale),
             // Applies impulse based on the player's position and where they click on the ball
             new CANNON.Vec3(cmd.hit?.position?.x, cmd.hit?.position?.y, cmd.hit?.position?.z)
@@ -65,29 +61,32 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
       )
     }
 
-    for (let i = 0; i < numberOfMarbles; i++) {
-      addBall(i)
+    for (let i = 0; i < numberOfBubbles; i++) {
+      addBubble(i)
     }
 
 
-    //set up moving cube
-
-    const target = engine.addEntity();
-    Transform.create(target, {
+    //set up moving glowing orb
+    const glowingOrb = engine.addEntity();
+    Transform.create(glowingOrb, {
       position: Vector3.create(28, 1, 28),
     })
     
-    MeshRenderer.setSphere(target)
-    Material.setPbrMaterial(target, {
-      albedoColor: {r: 15, g: 0, b: 0, a:1},
-      
-      //roughness: 0.1,
+    MeshRenderer.setSphere(glowingOrb)
+    Material.setPbrMaterial(glowingOrb, {
+      albedoColor: {r: 15, g: 0, b: 0, a:1}
     })
+
+    utils.timers.setInterval( () => {
+      const randomxLocation = generateRandomNumber(20, 40)
+      const randomzLocation = generateRandomNumber(20, 40)
+      const targetTransform =Transform.getMutable(glowingOrb);
+      targetTransform.position.x = randomxLocation
+      targetTransform.position.z = randomzLocation
+    }, 15000)
 
 
     // Setup our world
-
-    
     const world: CANNON.World = new CANNON.World()
     world.gravity.set(0, -9.82, 0) // m/s²
   
@@ -119,25 +118,25 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     })
     world.addContactMaterial(ballPhysicsContactMaterial)
   
-    let addBallsBody = (index: number) => {
-      const ballTransform = Transform.get(balls[index].entity)
+    let addBubblesBody = (index: number) => {
+      const bubbleTransform = Transform.get(bubbles[index].bubbleEntity)
   
-      const ballBody: CANNON.Body = new CANNON.Body({
+      const bubbleBody: CANNON.Body = new CANNON.Body({
         mass: 5, // kg
-        position: new CANNON.Vec3(ballTransform.position.x, ballTransform.position.y, ballTransform.position.z), // m
+        position: new CANNON.Vec3(bubbleTransform.position.x, bubbleTransform.position.y, bubbleTransform.position.z), // m
         shape: new CANNON.Sphere(1) // m (Create sphere shaped body with a radius of 1)
       })
   
-      ballBody.material = ballPhysicsMaterial // Add bouncy material to ball body
-      ballBody.linearDamping = 0.4 // Round will keep translating even with friction so you need linearDamping
-      ballBody.angularDamping = 0.4 // Round bodies will keep rotating even with friction so you need angularDamping
+      bubbleBody.material = ballPhysicsMaterial // Add bouncy material to ball body
+      bubbleBody.linearDamping = 0.4 // Round will keep translating even with friction so you need linearDamping
+      bubbleBody.angularDamping = 0.4 // Round bodies will keep rotating even with friction so you need angularDamping
   
-      world.addBody(ballBody) // Add body to the world
-      ballBodies.push(ballBody)
+      world.addBody(bubbleBody) // Add body to the world
+      bubbleBodies.push(bubbleBody)
     }
     // Create bodies to represent each of the balls
-    for (let i = 0; i < balls.length; i++) {
-      addBallsBody(i);
+    for (let i = 0; i < bubbles.length; i++) {
+      addBubblesBody(i);
     }
   
 
@@ -150,29 +149,32 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
       world.step(fixedTimeStep, dt, maxSubSteps)
   
       // Position and rotate the balls in the scene to match their cannon world counterparts
-      for (let i = 0; i < balls.length; i++) {
+      for (let i = 0; i < bubbles.length; i++) {
   
-        if (!balls[i].isHidden) {
-          const ballTransform = Transform.getMutable(balls[i].entity)
-          ballTransform.position = ballBodies[i].position
-          ballTransform.rotation = ballBodies[i].quaternion
+        if (!bubbles[i].isHidden) {
+          const bubbleTransform = Transform.getMutable(bubbles[i].bubbleEntity)
+          bubbleTransform.position = bubbleBodies[i].position
+          bubbleTransform.rotation = bubbleBodies[i].quaternion
     
-          const miniMeTransform = Transform.getMutable(miniMes[i].entity)
-          miniMeTransform.position = ballBodies[i].position
-          miniMeTransform.rotation = ballBodies[i].quaternion
+          const miniMeTransform = Transform.getMutable(bubbles[i].miniMeEntity)
+          miniMeTransform.position = bubbleBodies[i].position
+          miniMeTransform.rotation = bubbleBodies[i].quaternion
           
-          const targetTransform = Transform.getMutable(target);
+          const glowingOrbTransform = Transform.getMutable(glowingOrb);
     
-          const marbleInArea = (ballBodies[i].position.x >= (targetTransform.position.x - 1)) && (ballBodies[i].position.x <= (targetTransform.position.x + 1))
-          && (ballBodies[i].position.z >= (targetTransform.position.z - 1))  && (ballBodies[i].position.z <= (targetTransform.position.z + 1) )
-    
-    
-          if (marbleInArea){
-            balls[i].isHidden = true;
-            ballTransform.position = Vector3.create(33,11, 33)
-            miniMeTransform.position = Vector3.create(33,10.9, 33)
+          const bubbleInArea = (bubbleBodies[i].position.x >= (glowingOrbTransform.position.x - 1)) 
+                                  && (bubbleBodies[i].position.x <= (glowingOrbTransform.position.x + 1))
+                                  && (bubbleBodies[i].position.z >= (glowingOrbTransform.position.z - 1))  
+                                  && (bubbleBodies[i].position.z <= (glowingOrbTransform.position.z + 1))
+                                  && (bubbleBodies[i].position.y <= (glowingOrbTransform.position.y + 1))
+                                  && (bubbleBodies[i].position.y >= (glowingOrbTransform.position.y - 1))
+
+          if (bubbleInArea) {
+            bubbles[i].isHidden = true;
+            bubbleTransform.position = Vector3.create(33, 11, 33)
+            miniMeTransform.position = Vector3.create(33, 10.9, 33)
             
-            if (i === realMeIndex){
+            if (i === realMeIndex) {
               foundMe = true;
             }
           } 
@@ -181,7 +183,6 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
   
       // Update forward vector
       forwardVector = Vector3.rotate(Vector3.Forward(), Transform.get(engine.CameraEntity).rotation)
-      // console.log('Forward Vector: ', forwardVector)
     }
   
     engine.addSystem(updateSystem)
@@ -191,71 +192,60 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
       // Reset with the E key
       const primaryDown = inputSystem.getInputCommand(InputAction.IA_PRIMARY, PointerEventType.PET_DOWN)
       if (primaryDown) {
-        
-        
+
         if (foundMe === true) {
-          //add more marbles? TODO: set level display? and marble count??
 
-          let currentBallsLength = balls.length;
-          realMeIndex =  Math.floor(Math.random() * currentBallsLength*2);
+          foundMe = false;
 
+          let currentNumberOfBubbles = bubbles.length;
+          realMeIndex = Math.floor(Math.random() * currentNumberOfBubbles*2);
 
-          for (let i = 0; i < ballBodies.length; i++) {
-            balls[i].isHidden = false;
+          
+          for (let i = 0; i < bubbleBodies.length; i++) {
+            bubbles[i].isHidden = false;
 
-
-            const previousIsRealMe = miniMes[i].isRealMe;
+            const previousIsRealMe = bubbles[i].isRealMe;
            
-            miniMes[i].isRealMe = i === realMeIndex;
-            if (previousIsRealMe !== miniMes[i].isRealMe) {
-              miniMes[i].updateMiniMeHintInterval()
+            bubbles[i].isRealMe = i === realMeIndex;
+            if (previousIsRealMe !== bubbles[i].isRealMe) {
+              bubbles[i].updateMiniMeHintInterval()
             }
             
-            ballBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
-            
-            const miniMeTransform = Transform.getMutable(miniMes[i].entity)
-            miniMeTransform.scale = Vector3.create(0.5,.5,.5)
+            bubbleBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
           }
 
           
-          for (let i = currentBallsLength; i < currentBallsLength*2; i++) {
-            addBall(i)
-            addBallsBody(i)
+          for (let i = currentNumberOfBubbles; i < currentNumberOfBubbles*2; i++) {
+            addBubble(i)
+            addBubblesBody(i)
           }
 
             
-          foundMe = false;
+          
           currentLevel = currentLevel + 1;
-
          
           const mutableLevelSignText = TextShape.getMutable(levelSign)
           mutableLevelSignText.text = "Level "+ (currentLevel + 1).toString()
 
-
-          
-        } else if (gameOver ){
-
-        
-          realMeIndex =  Math.floor(Math.random() * numberOfMarbles);
-          for (let i = 0; i < numberOfMarbles; i++) {
-            addBall(i)
-            addBallsBody(i)
+        } else if (gameOver) {
+          gameOver = false;
+          realMeIndex =  Math.floor(Math.random() * numberOfBubbles);
+          for (let i = 0; i < numberOfBubbles; i++) {
+            addBubble(i)
+            addBubblesBody(i)
           }
           engine.addSystem(updateSystem)
-          gameOver = false;
+          
           currentLevel = 0;
           const mutableLevelSignText = TextShape.getMutable(levelSign)
           mutableLevelSignText.text = "Level "+ (currentLevel + 1).toString()
-        } else {
-          for (let i = 0; i < ballBodies.length; i++) {
-            balls[i].isHidden = false;
 
-            
-            ballBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
-            
-            const miniMeTransform = Transform.getMutable(miniMes[i].entity)
-            miniMeTransform.scale = Vector3.create(0.5,.5,.5)
-            utils.timers.clearInterval(intervalId)
+        } else {
+
+          utils.timers.clearInterval(countDownIntervalId)
+          for (let i = 0; i < bubbleBodies.length; i++) {
+            bubbles[i].isHidden = false;
+            bubbleBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
           }
         }
         
@@ -265,9 +255,7 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     })
 
 
-
     // Set up count down
-    const startingTimer = 180;
     let timer = startingTimer;
 
     const countDown = engine.addEntity()
@@ -284,42 +272,45 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     Billboard.create(countDown, {})
   
     const affirmations = ['Super', 'Yay', 'Grand', 'Wow', 'Yes']
-    let intervalId = -1;
+    let countDownIntervalId = -1;
     let setTimer = () => {
-      intervalId = utils.timers.setInterval(function () {
+      countDownIntervalId = utils.timers.setInterval(function () {
   
         timer = timer-1;
         const mutableText = TextShape.getMutable(countDown)
 
-        let resetMarbles = () => {
-          utils.timers.clearInterval(intervalId)
+        let resetBubbles = () => {
+          utils.timers.clearInterval(countDownIntervalId)
           engine.removeSystem(updateSystem)
 
-          for (let i = 0; i < balls.length; i++) {
+          for (let i = 0; i < bubbles.length; i++) {
               Transform.getMutable(popSound).position = Transform.get(engine.PlayerEntity).position
               AudioSource.getMutable(popSound).playing = true
 
-              utils.timers.clearInterval(miniMes[i].hintInterval);
-              engine.removeEntity(balls[i].entity)
-              engine.removeEntity(miniMes[i].entity)
-              world.remove(ballBodies[i])
+              utils.timers.clearInterval(bubbles[i].hintInterval);
+              pointerEventsSystem.removeOnPointerDown(bubbles[i].bubbleEntity)
+              engine.removeEntity(bubbles[i].bubbleEntity)
+              engine.removeEntity(bubbles[i].miniMeEntity)
+              world.remove(bubbleBodies[i])
+              
 
           }
 
-          balls = [];
-          miniMes = [];
-          ballBodies = [];
+          
+
+          bubbles = [];
+          bubbleBodies = [];
           randomPositions = [];
           currentLevel = 1;
-
+          ballHeight = 10;
         }
 
 
         if (timer <= 0) {
-          utils.timers.clearInterval(intervalId)
+          utils.timers.clearInterval(countDownIntervalId)
           engine.removeSystem(updateSystem)
 
-          resetMarbles();
+          resetBubbles();
     
           mutableText.text = "GAME\nOVER!"
           triggerSceneEmote({ src: 'animations/loser.glb', loop: true })
@@ -327,11 +318,9 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
         } else {
     
             if (foundMe) {
-
-              let questCurrentLevel = currentLevel + 1;
-              //if (currentLevel === 0) {
-                if (currentLevel === 3) {
-
+              utils.timers.clearInterval(countDownIntervalId)
+              if (currentLevel === 3) {
+                triggerEmote({ predefinedEmote: 'handsair' })
                 mutableText.text = "You won!";
 
                 AudioSource.getMutable(carnivalSound).playing = false;
@@ -346,16 +335,11 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
                 }, 1500);
 
                 
-                
-                  
-                triggerEmote({ predefinedEmote: 'handsair' })
               
-                resetMarbles();
+                resetBubbles();
                 currentLevel = 0;
                 gameOver = true;
                 foundMe = false;
-
-               
                 
               } else {
 
@@ -365,18 +349,6 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
                 mutableText.text = affirmations[affirmRand] + "!\n E to \n continue";
                 
               }
-              
-
-              //actionEvents.emit('action', {
-              //  type: 'CUSTOM',
-               // parameters: { id: 'Action-' + questCurrentLevel.toString() },
-              //})
-
-              utils.timers.clearInterval(intervalId)
-  
-              
-            
-              
             } else {
               mutableText.text = timer.toString();
             }
@@ -386,7 +358,6 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     }
   
     setTimer();
-
 
     const levelSign = engine.addEntity()
     Transform.create(levelSign, {
@@ -399,7 +370,6 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
       textColor: { r: 0, g: 255, b: 0, a: 1 },
       textAlign:  TextAlignMode.TAM_TOP_CENTER
     })
-
 
     Billboard.create(levelSign, {})
 
@@ -418,13 +388,6 @@ export function addMarbles(userData: any, numberOfMarbles: number, modelPath: st
     Billboard.create(levelPlane, {})
 
 
-    utils.timers.setInterval( () => {
-
-      const randomxLocation = generateRandomNumber(20, 40)
-      const randomzLocation = generateRandomNumber(20, 40)
-      const targetTransform =Transform.getMutable(target);
-      targetTransform.position.x = randomxLocation
-      targetTransform.position.z = randomzLocation
-    }, 15000)
+    
     
 }

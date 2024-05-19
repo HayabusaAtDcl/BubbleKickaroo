@@ -1,7 +1,8 @@
-  import { Entity, GltfContainer, Transform, engine } from '@dcl/sdk/ecs'
+import { Entity, GltfContainer, Transform, engine } from '@dcl/sdk/ecs'
 import { Color4, Vector3 } from '@dcl/sdk/math'
-  import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity } from '@dcl/sdk/react-ecs'
-import { Ceiling } from './resource'
+import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity } from '@dcl/sdk/react-ecs'
+import { Ceiling } from './definition'
+
 
 export function addUi(){
   let showHint = false 
