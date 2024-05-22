@@ -9,6 +9,9 @@ export function addLandscape() {
     AudioSource.getMutable(carnivalSound).playing = true
     AudioSource.getMutable(carnivalSound).loop = true
 
+
+    // Credit:  modified color orb by tamminen (sketchfab) licensed under CC BY 2.0
+    // https://sketchfab.com/3d-models/color-orb-4d5882be5eaa4214aa394ae96563f14e
     const orb = engine.addEntity()
     GltfContainer.create(orb, {
         //src: 'models/clear_orb.glb'
