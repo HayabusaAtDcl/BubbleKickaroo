@@ -1,11 +1,12 @@
 import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType, Transform, TextShape, AudioSource, TextAlignMode, MeshRenderer, Material, Billboard } from "@dcl/sdk/ecs"
-import { Vector3, Quaternion } from "@dcl/sdk/math"
+import { Vector3, Quaternion, Color3 } from "@dcl/sdk/math"
 import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
 import { carnivalSound, clapSound, generateRandomNumber, popSound, waoSound, winSound } from "./resource"
 import CANNON from "cannon"
 import { triggerEmote, triggerSceneEmote } from "~system/RestrictedActions"
 import { Bubble } from "./bubble"
+import { TimerOrb } from "./definition"
 
 
 export function addBubbles(userData: any, numberOfBubbles: number, modelPath: string) {
@@ -85,6 +86,42 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
       targetTransform.position.z = randomzLocation
     }, 15000)
 
+
+    //set up timer orbs
+    const addTimeOrbs = (numberOfOrbs: number) => {
+      for (let i = 0; i < numberOfOrbs; i++) {
+        addTimerOrb()
+      }
+    }
+
+    const addTimerOrb = () => {
+
+      const randomxLocation = generateRandomNumber(20, 40)
+      const randomzLocation = generateRandomNumber(20, 40)
+
+      const timerOrb = engine.addEntity();
+      Transform.create(timerOrb, {
+        position: Vector3.create(randomxLocation, 1, randomzLocation),
+        scale: Vector3.create(.2,.2, .2 )
+      })
+      
+      MeshRenderer.setSphere(timerOrb)
+      Material.setPbrMaterial(timerOrb, {
+        albedoColor: {r: 15, g: 15, b: 25, a:1}
+      })
+
+      TimerOrb.create(timerOrb, {})
+
+      utils.triggers.addTrigger(
+        timerOrb,
+        utils.LAYER_1,
+        utils.LAYER_1,
+        [{ type: 'sphere' }],
+        () => {
+          timer = timer + 10;
+          engine.removeEntity(timerOrb)
+        }, undefined, Color3.Yellow()) 
+    }
 
     // Setup our world
     const world: CANNON.World = new CANNON.World()
@@ -198,7 +235,14 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
           foundMe = false;
 
           let currentNumberOfBubbles = bubbles.length;
-          realMeIndex = Math.floor(Math.random() * currentNumberOfBubbles*2);
+
+          let newNumberOfBubbles = currentNumberOfBubbles
+          if (currentLevel < 3){
+            newNumberOfBubbles = currentNumberOfBubbles*2    
+          } else {
+            addTimeOrbs(12)
+          }
+          realMeIndex = Math.floor(Math.random() * newNumberOfBubbles);
 
           
           for (let i = 0; i < bubbleBodies.length; i++) {
@@ -215,7 +259,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
           }
 
           
-          for (let i = currentNumberOfBubbles; i < currentNumberOfBubbles*2; i++) {
+          for (let i = currentNumberOfBubbles; i < newNumberOfBubbles; i++) {
             addBubble(i)
             addBubblesBody(i)
           }
@@ -249,7 +293,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
           }
         }
         
-        timer = startingTimer + 1;
+        timer = (currentLevel <= 3 ? startingTimer : 60)  + 1;
         setTimer();
       }
     })
@@ -292,11 +336,11 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
               engine.removeEntity(bubbles[i].bubbleEntity)
               engine.removeEntity(bubbles[i].miniMeEntity)
               world.remove(bubbleBodies[i])
-              
-
           }
 
-          
+          for (const [entity] of engine.getEntitiesWith(TimerOrb)) {
+            engine.removeEntity(entity)
+          }
 
           bubbles = [];
           bubbleBodies = [];
@@ -319,7 +363,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
     
             if (foundMe) {
               utils.timers.clearInterval(countDownIntervalId)
-              if (currentLevel === 3) {
+              if (currentLevel === 4) {
                 triggerEmote({ predefinedEmote: 'handsair' })
                 mutableText.text = "You won!";
 

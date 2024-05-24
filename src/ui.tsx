@@ -106,7 +106,7 @@ export function addUi(){
         uiTransform={{
         
           width: '500',
-          height: '350',
+          height: '360',
           display: showHint ? 'flex': 'none',
           margin: '60px 0px 0px 0px' 
         }}
@@ -128,8 +128,9 @@ export function addUi(){
 
             One with keen eyes will see hints of the right bubble.
             One with dull eyes, well bad luck! Just try them all!
+            Add time to timer by collecting blue orbs.
 
-            You win if you complete level 4.
+            You win by completing all five levels.  
 
             Press E to:
             Reset level if midway.
