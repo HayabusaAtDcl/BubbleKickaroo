@@ -94,6 +94,8 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
       }
     }
 
+
+    let orbTimerIntervals: number[] = [];
     const addTimerOrb = () => {
 
       const randomxLocation = generateRandomNumber(20, 40)
@@ -112,6 +114,16 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
 
       TimerOrb.create(timerOrb, {})
 
+      let timerOrbInterval = utils.timers.setInterval( () => {
+        const randomxLocation = generateRandomNumber(20, 40)
+        const randomzLocation = generateRandomNumber(20, 40)
+        const targetTransform =Transform.getMutable(timerOrb);
+        targetTransform.position.x = randomxLocation
+        targetTransform.position.z = randomzLocation
+      }, 1000)
+
+      orbTimerIntervals.push(timerOrbInterval)
+
       utils.triggers.addTrigger(
         timerOrb,
         utils.LAYER_1,
@@ -119,11 +131,13 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
         [{ type: 'sphere' }],
         () => {
           timer = timer + 10;
+          utils.timers.clearInterval(timerOrbInterval)
           engine.removeEntity(timerOrb)
 
           Transform.getMutable(dingSound).position = Transform.get(engine.PlayerEntity).position
           AudioSource.getMutable(dingSound).playing = true
         }, undefined, Color3.Yellow()) 
+
     }
 
     // Setup our world
@@ -243,7 +257,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
           if (currentLevel < 3){
             newNumberOfBubbles = currentNumberOfBubbles + 6  
           } else {
-            addTimeOrbs(12)
+            addTimeOrbs(10)
           }
           realMeIndex = Math.floor(Math.random() * newNumberOfBubbles);
 
@@ -295,15 +309,17 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
             bubbleBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
           }
 
+
+          orbTimerIntervals.map(o => utils.timers.clearInterval(o));
           for (const [entity] of engine.getEntitiesWith(TimerOrb)) {
             engine.removeEntity(entity)
           }
           if (currentLevel > 3) {
-            addTimeOrbs(12)
+            addTimeOrbs(10)
           }
         }
         
-        timer = (currentLevel <= 3 ? startingTimer : 60)  + 1;
+        timer = (currentLevel <= 3 ? startingTimer : 60) + 1;
         setTimer();
       }
     })
@@ -348,6 +364,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
               world.remove(bubbleBodies[i])
           }
 
+          orbTimerIntervals.map(o => utils.timers.clearInterval(o));
           for (const [entity] of engine.getEntitiesWith(TimerOrb)) {
             engine.removeEntity(entity)
           }
@@ -375,7 +392,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
               utils.timers.clearInterval(countDownIntervalId)
               if (currentLevel === 4) {
                 triggerEmote({ predefinedEmote: 'handsair' })
-                mutableText.text = "You won!";
+                mutableText.text = "BRAVO!\n You won";
 
                 AudioSource.getMutable(carnivalSound).playing = false;
 
