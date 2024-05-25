@@ -1,12 +1,14 @@
-import { Entity, GltfContainer, Transform, engine } from '@dcl/sdk/ecs'
+import { Entity, GltfContainer, Material, MeshRenderer, Transform, engine } from '@dcl/sdk/ecs'
 import { Color4, Vector3 } from '@dcl/sdk/math'
 import ReactEcs, { Button, Label, ReactEcsRenderer, UiEntity } from '@dcl/sdk/react-ecs'
 import { Ceiling } from './definition'
-
+import * as utils from '@dcl-sdk/utils'
 
 export function addUi(){
   let showHint = false 
   let hideGlobe = false 
+  let ceilingInterval = -1;
+
   ReactEcsRenderer.setUiRenderer(() => (
    
     <UiEntity
@@ -148,32 +150,77 @@ export function addUi(){
   ))
 
 toggleExperience();
+
+
 function toggleExperience(){
-  
+   const innerCeiling = engine.addEntity()
+    GltfContainer.create(innerCeiling, {
+        src: 'models/ceiling.glb'
+    })
+    Transform.createOrReplace(innerCeiling, {
+        position: Vector3.create(32, 0, 32),
+        scale: Vector3.create(16,18,16),
+       
+    }) 
+
+  Ceiling.create(innerCeiling, {}) 
 
   hideGlobe = !hideGlobe
   
-
-  if (hideGlobe) {
-
-      
+   const addGlowCeiling = () => {
     const ceiling = engine.addEntity()
     GltfContainer.create(ceiling, {
         src: 'models/ceiling.glb'
     })
     Transform.createOrReplace(ceiling, {
         position: Vector3.create(32, 0, 32),
-        scale: Vector3.create(19.5,19.5,19.5),
+        scale: Vector3.create(18,19,18),
        
     }) 
 
     Ceiling.create(ceiling, {})
 
-  
+    const glowCeiling = engine.addEntity();
+    Transform.create(glowCeiling, {
+      position: Vector3.create(32, 1, 32),
+      //scale: Vector3.create(38,40,38)
+      scale: Vector3.create(35,40,35)
+
+    })
+    
+    MeshRenderer.setSphere(glowCeiling)
+    Material.setPbrMaterial(glowCeiling, {
+      albedoColor: {r: 15, g: 15, b: 25, a:1}
+    })
+    Ceiling.create(glowCeiling, {}) 
+   }
+
+
+   //"Harlequin_ Orb" (https://skfb.ly/oFtUt) by Egypt VR is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+   const addCircusCeiling = () => {
+    const circusCeiling = engine.addEntity()
+        GltfContainer.create(circusCeiling, {
+            src: 'models/harlequin_orb.glb'
+        })
+        Transform.createOrReplace(circusCeiling, {
+            position: Vector3.create(32, 0, 32),
+            scale: Vector3.create(17,20,17),
+           
+        }) 
+    
+        Ceiling.create(circusCeiling, {}) 
+   }
+
+
+  if (hideGlobe) {
+
+    addGlowCeiling();
+    addCircusCeiling()
+
 
   } else {
   
-
+    utils.timers.clearInterval(ceilingInterval)
     for (const [entity] of engine.getEntitiesWith(Ceiling)) {
       engine.removeEntity(entity)
     }

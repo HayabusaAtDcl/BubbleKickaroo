@@ -10,16 +10,15 @@ export function addLandscape() {
     AudioSource.getMutable(carnivalSound).loop = true
 
 
-    // Credit:  modified color orb by tamminen (sketchfab) licensed under CC BY 2.0
-    // https://sketchfab.com/3d-models/color-orb-4d5882be5eaa4214aa394ae96563f14e
+    // Credit:  modified color orb 
+    // "Color orb" (https://skfb.ly/oDGuD) by tamminen is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
     const orb = engine.addEntity()
     GltfContainer.create(orb, {
-        //src: 'models/clear_orb.glb'
         src: 'models/color_orb.glb'
     })
     Transform.create(orb, {
         position: Vector3.create(32, 6, 32),
-        scale: Vector3.create(23, 23, 23),
+        scale: Vector3.create(23, 25, 23),
         
     }) 
     
@@ -41,7 +40,7 @@ export function addLandscape() {
       })
     
 
-    // Credit:  utilising Head Chef Bot With Animations, by Jakss (sketchfab), licensed under CC BY 2.0
+    // Credit "Head Chef Bot With Animations" (https://skfb.ly/oTOOB) by Jakss™ is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
     const monkey = engine.addEntity();
     GltfContainer.create(monkey,
         {

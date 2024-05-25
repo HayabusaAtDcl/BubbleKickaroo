@@ -16,6 +16,10 @@ export const clapSound = engine.addEntity()
 Transform.create(clapSound)
 AudioSource.create(clapSound, { audioClipUrl: 'sounds/clap.mp3',  playing: false })
 
+export const dingSound = engine.addEntity()
+Transform.create(dingSound)
+AudioSource.create(dingSound, { audioClipUrl: 'sounds/ding.mp3',  playing: false })
+
 export const waoSound = engine.addEntity()
 Transform.create(waoSound)
 AudioSource.create(waoSound, { audioClipUrl: 'sounds/wao.mp3',  playing: false })

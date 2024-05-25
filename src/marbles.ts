@@ -2,7 +2,7 @@ import { engine, pointerEventsSystem, InputAction, inputSystem, PointerEventType
 import { Vector3, Quaternion, Color3 } from "@dcl/sdk/math"
 import { loadColliders } from "./wallCollidersSetup"
 import * as utils from '@dcl-sdk/utils' 
-import { carnivalSound, clapSound, generateRandomNumber, popSound, waoSound, winSound } from "./resource"
+import { carnivalSound, clapSound, dingSound, generateRandomNumber, popSound, waoSound, winSound } from "./resource"
 import CANNON from "cannon"
 import { triggerEmote, triggerSceneEmote } from "~system/RestrictedActions"
 import { Bubble } from "./bubble"
@@ -120,6 +120,9 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
         () => {
           timer = timer + 10;
           engine.removeEntity(timerOrb)
+
+          Transform.getMutable(dingSound).position = Transform.get(engine.PlayerEntity).position
+          AudioSource.getMutable(dingSound).playing = true
         }, undefined, Color3.Yellow()) 
     }
 
@@ -238,7 +241,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
 
           let newNumberOfBubbles = currentNumberOfBubbles
           if (currentLevel < 3){
-            newNumberOfBubbles = currentNumberOfBubbles*2    
+            newNumberOfBubbles = currentNumberOfBubbles + 6  
           } else {
             addTimeOrbs(12)
           }
@@ -290,6 +293,13 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
           for (let i = 0; i < bubbleBodies.length; i++) {
             bubbles[i].isHidden = false;
             bubbleBodies[i].position.set(randomPositions[i].x, randomPositions[i].y, randomPositions[i].z)
+          }
+
+          for (const [entity] of engine.getEntitiesWith(TimerOrb)) {
+            engine.removeEntity(entity)
+          }
+          if (currentLevel > 3) {
+            addTimeOrbs(12)
           }
         }
         
