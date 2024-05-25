@@ -390,7 +390,7 @@ export function addBubbles(userData: any, numberOfBubbles: number, modelPath: st
     
             if (foundMe) {
               utils.timers.clearInterval(countDownIntervalId)
-              if (currentLevel === 4) {
+              if (currentLevel >= 4) {
                 triggerEmote({ predefinedEmote: 'handsair' })
                 mutableText.text = "BRAVO!\n You won";
 
