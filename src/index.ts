@@ -1,18 +1,20 @@
-import { executeTask } from '@dcl/sdk/ecs'
-import { getUserData } from '~system/UserIdentity';
-import { addUi } from './ui';
-import { addLandscape } from './landscape';
-import { publishVisitor } from './serverHandler';
+import { engine, executeTask, MeshCollider, MeshRenderer, Transform } from '@dcl/sdk/ecs'
 import { addBubbles } from './marbles';
-//import { addQuest } from './quest';
+import { addUi } from './ui';
+import { LSCQuesting } from './questing';
+import * as utils from '@dcl-sdk/utils' 
+import { LSCQuestLocalCreator, showLSCQuestIcon } from 'lsc-questing-dcl';
+
+
+
 export function main() {
 
-  publishVisitor()
-  addLandscape();
-  addUi();
   
-  executeTask(async () => {
-    let userData = await getUserData({});
-    addBubbles(userData, 4, 'models/marble.glb');
-  });  
+  LSCQuestLocalCreator(true)
+  LSCQuesting()
+
+  showLSCQuestIcon(true)
+  addUi();
+  addBubbles(2, 'models/gift.glb');
+
 }

@@ -1,77 +1,69 @@
 
-import { AvatarShape, ColliderLayer, Entity, GltfContainer, Transform, TransformType, engine } from '@dcl/sdk/ecs'
-import { Color3, Vector3 } from '@dcl/sdk/math';
+import { Animator, ColliderLayer, Entity, GltfContainer, Transform, TransformType, engine } from '@dcl/sdk/ecs'
 import * as utils from '@dcl-sdk/utils' 
+import { Quaternion, Vector3 } from '@dcl/sdk/math';
 
 export class Bubble {
     bubbleEntity: Entity;
-    miniMeEntity: Entity;
-    isHidden: boolean = false;
-    isRealMe = false;
-    hintInterval: number = -1;
+    egg: Entity | null = null;
+    hasEgg = false;
+    isOpen = false;
     counter = 0;
   
-    constructor(modelPath: string, transform: TransformType, userData: any, cryStartDelay: number, isRealMe: boolean) {
+    constructor(modelPath: string,  transform: TransformType, hasEgg: boolean) {
         this.bubbleEntity = engine.addEntity()
-        Transform.create(this.bubbleEntity, transform)
-        GltfContainer.create(this.bubbleEntity, {
-            src: modelPath,
+       
+        
+        this.hasEgg = hasEgg;
+
+        if(hasEgg){
+          this.egg = engine.addEntity()
+          GltfContainer.create(this.egg, {
+            src: 'models/egg.glb',
+          
             visibleMeshesCollisionMask: ColliderLayer.CL_PHYSICS,
             invisibleMeshesCollisionMask: ColliderLayer.CL_POINTER
         })
-  
-        this.miniMeEntity = engine.addEntity()
-        this.isRealMe = isRealMe;
+        
+        Transform.create(this.egg, {
 
-        AvatarShape.create(this.miniMeEntity, {
-            id: " ",
-            name: userData.data?.displayName,
-            bodyShape: userData.data?.avatar?.bodyShape,
-            hairColor: Color3.fromHexString(userData.data?.avatar?.hairColor??''),
-            eyeColor: Color3.fromHexString(userData.data?.avatar?.eyeColor??''),
-            skinColor:  Color3.fromHexString(userData.data?.avatar?.skinColor??''),   
-            emotes : ["cry"],
-            wearables: userData.data?.avatar?.wearables??[],
-            expressionTriggerId: "cry",
-            expressionTriggerTimestamp: Math.round(+new Date() / 1000)
-        }) 
+          position: Vector3.create(-1,2,1),
+          scale: Vector3.create(111,111,111),
+          rotation: Quaternion.fromEulerDegrees(0, 0, 0),
+          parent: this.bubbleEntity
+        })
+        }
 
-        Transform.create(this.miniMeEntity, {
-            position: Vector3.create(transform.position.x, transform.position.y + 0.1, transform.position.z),
-            scale: Vector3.create(.5,.5,.5)
-        });
-
-        utils.timers.setTimeout(()=>{
-            this.createNpcHint();
-        }, cryStartDelay);
-
-    }
-
-    public updateMiniMeHintInterval  = () => {
-        utils.timers.clearInterval(this.hintInterval);
-        this.createNpcHint();
-    }
-    
-    private createNpcHint = () => {
-        this.hintInterval = utils.timers.setInterval( () => {
-            this.counter = this.counter + 1;
-            let npc = AvatarShape.getMutableOrNull(this.miniMeEntity);
-            if (npc != null) {
-                if (this.counter >= 3 && this.isRealMe) {
-                    this.counter = 0;
-                    npc.emotes = ['kiss']
-                    npc.expressionTriggerId = 'kiss'
-    
-                } else {
-                    npc.emotes = ["cry"]
-                    npc.expressionTriggerId = "cry"
-                }
-              
-                npc.expressionTriggerTimestamp = Math.round(+new Date() / 1000)
-            }
+        Animator.create(this.bubbleEntity, {
+          states: [
             
-        }, 8000)
-      }
+             {
+            
+              clip: 'Take 001_Object_6',
+               playing: false,
+               loop: false,
+               shouldReset: true
+             }
+          ]
+        })  
+
+       
+      
+        Animator.stopAllAnimations(this.bubbleEntity, true)
+/* 
+
+        */
+
+          Transform.create(this.bubbleEntity, transform)
+          GltfContainer.create(this.bubbleEntity, {
+            src: modelPath,
+          
+            visibleMeshesCollisionMask: ColliderLayer.CL_PHYSICS,
+            invisibleMeshesCollisionMask: ColliderLayer.CL_POINTER
+        })
+    }
+
+   
   }
   
   
