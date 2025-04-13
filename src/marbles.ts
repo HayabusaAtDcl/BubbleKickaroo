@@ -1,16 +1,35 @@
-import { engine, pointerEventsSystem, InputAction, Material, PointerEventType, Transform, Animator, ColliderLayer, GltfContainer, PointerEvents, AudioSource, MeshRenderer } from "@dcl/sdk/ecs"
+import { engine, pointerEventsSystem, InputAction, Material, PointerEventType, Transform, Animator, ColliderLayer, GltfContainer, PointerEvents, AudioSource, MeshRenderer, Billboard, TextAlignMode, TextShape, Entity } from "@dcl/sdk/ecs"
 import { Vector3, Quaternion } from "@dcl/sdk/math"
 import { loadColliders } from "./wallCollidersSetup"
-import { generateRandomNumber, popSound, waoSound, yaySound } from "./resource"
+import { generateRandomNumber, noSound, popSound, tickTockSound, waoSound, yaySound } from "./resource"
 import CANNON from "cannon"
 import { Bubble } from "./bubble"
 import * as utils from '@dcl-sdk/utils' 
 import { AddQuestAction, LSCQuesting, taskDone } from "./questing"
+import { movePlayerTo, triggerSceneEmote } from "~system/RestrictedActions"
 
 
 export function addBubbles(numberOfBubbles: number, modelPath: string) {
-  let intervalId = -1;
+    let intervalId = -1;
+    let timerIntervalId = -1;
+    let inPrison = false;
+    let resetTime = 20
+    let time = resetTime;
     let hasEggIndex = generateRandomNumber(0, numberOfBubbles-1);
+
+
+
+    const getUniqueRandomNumbers = (count: number, max: number) =>  {
+      const result = new Set();
+      while (result.size < count) {
+          result.add(generateRandomNumber(0, max));
+      }
+      return Array.from(result);
+    }
+  
+    // Example usage:
+    const boobyIndexes = getUniqueRandomNumbers(50, numberOfBubbles - 1);
+    
    
     let bubbles: Bubble[] = [] 
     let bubbleBodies: CANNON.Body[] = [] 
@@ -21,6 +40,24 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
   
     let randomPositions: any = []
     
+    let lockSign: Entity
+    let addTimer = () => {
+      
+      lockSign = engine.addEntity();
+      Transform.create(lockSign, {
+        position: Vector3.create(8,6,8),
+        rotation: Quaternion.fromEulerDegrees(0, 200, 0),
+        scale: Vector3.create(1,1,1)
+      })
+      TextShape.create(lockSign, {
+        text:  time.toString(),
+        textColor: { r: 255, g: 255, b: 255, a: .8 },
+        textAlign:  TextAlignMode.TAM_TOP_CENTER
+      })
+
+      Billboard.create(lockSign, {})
+    }
+
     let addBubble = (index: number, withEgg: boolean) => {
       const randomPositionX: number = Math.random() * 16
       const randomPositionY: number = ballHeight
@@ -32,8 +69,8 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
           position: randomPositions[index],
           rotation: Quaternion.Zero(),
           scale: Vector3.create(.05,.05,.05)
-        }, hasEggIndex === index &&  withEgg)
-
+        }, hasEggIndex === index && withEgg,
+         boobyIndexes.includes(index) && (index != hasEggIndex))
       
       bubbles.push(bubble)
       ballHeight += 2 // To ensure the colliders aren't intersecting when the simulation starts
@@ -48,6 +85,19 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
           }
         },
         function (cmd: any) {
+
+          if (inPrison) {
+            movePlayerTo({
+              newRelativePosition: Vector3.create(8,2.2, 8) ,
+              cameraTarget: Vector3.create(0, 4, 0)
+            })
+
+           
+              triggerSceneEmote({ src: 'animations/cry_emote.glb', loop: true })
+           
+            return
+          }
+
 
           //if bubble has egg and task has not been done TODO;
           if (bubble.hasEgg) {
@@ -71,11 +121,12 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
                 AudioSource.getMutable(waoSound).playing = true
 
                 AddQuestAction(bubble.bubbleEntity, bubble.egg)
-            }, 1000);
-          }
-            
+              }, 1000);
+            }
+
            
-          }else {
+
+          } else {
             // Apply impulse based on the direction of the camera
             bubbleBodies[index].applyImpulse(
               new CANNON.Vec3(forwardVector.x * vectorScale, forwardVector.y * vectorScale, forwardVector.z * vectorScale),
@@ -93,6 +144,52 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
 
               bubble.isOpen = true
               PointerEvents.deleteFrom(bubble.bubbleEntity)
+
+
+              if (bubble.isBooby) {
+                inPrison = true;
+                time = resetTime
+    
+                addTimer()
+    
+                Transform.getMutable(noSound).position = Transform.get(engine.PlayerEntity).position
+                    AudioSource.getMutable(noSound).playing = true
+    
+                  movePlayerTo({
+                      newRelativePosition: Vector3.create(8,4, 8) ,
+                      cameraTarget: Vector3.create(0, 1.18, 0)
+                    }) 
+    
+                    
+                   
+                    Transform.getMutable(tickTockSound).position = Transform.get(engine.PlayerEntity).position
+                    AudioSource.getMutable(tickTockSound).playing = true
+                    AudioSource.getMutable(tickTockSound).loop = true
+    
+    
+                    timerIntervalId = utils.timers.setInterval( () => {
+                      time = time - 1
+    
+                      const mutableLevelSignText = TextShape.getMutable(lockSign)
+                      mutableLevelSignText.text = time.toString()
+    
+                    }, 1000)
+    
+                  utils.timers.setTimeout(()=>  {
+                    movePlayerTo({
+                      newRelativePosition: Vector3.create(8,22, 8) ,
+                      cameraTarget: Vector3.create(8, 22, 8)
+    
+                     
+                    }) 
+    
+                    inPrison = false;
+                    utils.timers.clearInterval(timerIntervalId);
+                    engine.removeEntity(lockSign)
+                    AudioSource.getMutable(tickTockSound).playing = false
+    
+                  }, time * 1000)
+                }
           }
 
          
@@ -116,6 +213,22 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
         utils.timers.clearInterval(intervalId);
       }
     }, 60000)
+
+    //Set up jail
+    const bubble = engine.addEntity()
+
+    GltfContainer.create(bubble, {
+        src: 'models/marble2.glb',
+      
+        visibleMeshesCollisionMask: ColliderLayer.CL_PHYSICS,
+        invisibleMeshesCollisionMask: ColliderLayer.CL_PHYSICS
+    })
+            
+    Transform.create(bubble, {
+      position: Vector3.create(8,4,8),
+      scale: Vector3.create(2,2,2),
+      rotation: Quaternion.fromEulerDegrees(0, 0, 0)
+    })
 
 
     // Setup our world

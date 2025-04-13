@@ -13,6 +13,14 @@ export const popSound = engine.addEntity()
 Transform.create(popSound)
 AudioSource.create(popSound, { audioClipUrl: 'sounds/pop.mp3',  playing: false })
 
+export const tickTockSound = engine.addEntity()
+Transform.create(tickTockSound)
+AudioSource.create(tickTockSound, { audioClipUrl: 'sounds/ticktock.mp3',  playing: false })
+
+export const noSound = engine.addEntity()
+Transform.create(noSound)
+AudioSource.create(noSound, { audioClipUrl: 'sounds/nonono.mp3',  playing: false })
+
 export function generateRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }

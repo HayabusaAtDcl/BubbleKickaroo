@@ -1,10 +1,9 @@
 {
-	
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {
-	  "title": "Seaside Spot",
-	  "description": "",
+	  "title": "Easter Hunt 2025",
+	  "description": "Hayabusa",
 	  "navmapThumbnail": "images/scene-thumbnail.png",
 	  "favicon": "favicon_asset"
 	},

@@ -29,6 +29,6 @@
     "@dcl-sdk/utils": "^1.2.8",
     "@types/cannon": "latest",
     "cannon": "latest",
-    "lsc-questing-dcl": "1.2.95"
+    "lsc-questing-dcl": "^1.2.98"
   }
 }

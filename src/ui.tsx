@@ -75,9 +75,9 @@ export function UIHelp() {
         uiTransform={{
         
           width: '400',
-          height: '160',
+          height: '200',
           display: showHint ? 'flex': 'none',
-          margin: '60px 0px 0px 0px' 
+          margin: '70px 0px 0px 0px' 
         }}
         uiBackground={{
           color: Color4.create(0, 0, 0, 0.6)
@@ -90,14 +90,14 @@ export function UIHelp() {
             textAlign="top-left"
             fontSize={15}
             value="
-            One of these boxes contain the egg!
+            One of these boxes contains the egg!
             
             Just click until you find the right one.
             Don't delay. More boxes will be added 
-            every minute.
+            every minute. There are a few boxes that
+            will put you on time out for one minute!
 
-            Happy Hunting!
-            
+            Choose wisely and happy hunting!
             "
           />
       </UiEntity>
