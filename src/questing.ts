@@ -1,6 +1,7 @@
-import { engine, Entity, InputAction, PointerEvents, pointerEventsSystem } from "@dcl/sdk/ecs"
+import { AudioSource, engine, Entity, InputAction, PointerEvents, pointerEventsSystem, Transform } from "@dcl/sdk/ecs"
 import { LSCQuestAction, LSCQuestConnect, LSCQuestLeaderboard } from "lsc-questing-dcl"
 import { Quaternion, Vector3 } from "@dcl/sdk/math"
+import { collectSound } from "./resource"
 
 //prod
 /* Quest ID :  KsyZNX
@@ -64,7 +65,8 @@ export function AddQuestAction(box: Entity, sceneEgg: Entity | null){
 		},
 		function (cmd: any) {
 
-			
+			Transform.getMutable(collectSound).position = Transform.get(engine.PlayerEntity).position
+			AudioSource.getMutable(collectSound).playing = true
 			LSCQuestAction(QUEST_ID, STEP_ID, TASK_ID)
 
 			if (sceneEgg != null)

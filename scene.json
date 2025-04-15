@@ -2,8 +2,8 @@
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {
-	  "title": "Easter Hunt 2025",
-	  "description": "Hayabusa",
+	  "title": "Easter Egg Hunt 2025",
+	  "description": "By Hayabusa",
 	  "navmapThumbnail": "images/scene-thumbnail.png",
 	  "favicon": "favicon_asset"
 	},

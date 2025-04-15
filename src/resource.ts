@@ -21,6 +21,10 @@ export const noSound = engine.addEntity()
 Transform.create(noSound)
 AudioSource.create(noSound, { audioClipUrl: 'sounds/nonono.mp3',  playing: false })
 
+export const collectSound = engine.addEntity()
+Transform.create(collectSound)
+AudioSource.create(collectSound, { audioClipUrl: 'sounds/collect.mp3',  playing: false })
+
 export function generateRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }

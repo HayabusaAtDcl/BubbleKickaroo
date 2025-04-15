@@ -13,7 +13,7 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
     let intervalId = -1;
     let timerIntervalId = -1;
     let inPrison = false;
-    let resetTime = 20
+    let resetTime = 60
     let time = resetTime;
     let hasEggIndex = generateRandomNumber(0, numberOfBubbles-1);
 
@@ -28,7 +28,7 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
     }
   
     // Example usage:
-    const boobyIndexes = getUniqueRandomNumbers(50, numberOfBubbles - 1);
+    const boobyIndexes = getUniqueRandomNumbers(10, numberOfBubbles - 1);
     
    
     let bubbles: Bubble[] = [] 
@@ -88,7 +88,7 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
 
           if (inPrison) {
             movePlayerTo({
-              newRelativePosition: Vector3.create(8,2.2, 8) ,
+              newRelativePosition: Vector3.create(8, 3.7, 8) ,
               cameraTarget: Vector3.create(0, 4, 0)
             })
 
@@ -156,7 +156,7 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
                     AudioSource.getMutable(noSound).playing = true
     
                   movePlayerTo({
-                      newRelativePosition: Vector3.create(8,4, 8) ,
+                      newRelativePosition: Vector3.create(8, 5.5, 8) ,
                       cameraTarget: Vector3.create(0, 1.18, 0)
                     }) 
     
@@ -177,8 +177,8 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
     
                   utils.timers.setTimeout(()=>  {
                     movePlayerTo({
-                      newRelativePosition: Vector3.create(8,22, 8) ,
-                      cameraTarget: Vector3.create(8, 22, 8)
+                      newRelativePosition: Vector3.create(8, 0, 8) ,
+                      cameraTarget: Vector3.create(8, 4, 8)
     
                      
                     }) 
@@ -225,7 +225,7 @@ export function addBubbles(numberOfBubbles: number, modelPath: string) {
     })
             
     Transform.create(bubble, {
-      position: Vector3.create(8,4,8),
+      position: Vector3.create(8,5.5,8),
       scale: Vector3.create(2,2,2),
       rotation: Quaternion.fromEulerDegrees(0, 0, 0)
     })
